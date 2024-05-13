@@ -26,10 +26,7 @@ class Subreddit():
 
         # try to send request for data to url
         try:
-            url_request = requests.get(
-                    url=self.json_url,
-                    headers=self.header
-            )
+            url_request = requests.get(url=self.json_url, headers=self.header)
 
             # raise an HTTP error
             url_request.raise_for_status()
@@ -53,13 +50,17 @@ class Subreddit():
         # iterate over reddit post
         for post in reddit_posts:
 
-            if post["kind"] == "t3":
+            # check that reddit post is of t3 kind and contains a url
+            if post["kind"] == "t3" and "url_overridden_by_dest" in post["data"].keys():
 
-                # check if post contains a url that is not an image
-                if "url_overridden_by_dest" in post["data"].keys() and not bool(re.search(r"[jpeg|png|gif]$", post["data"]["url_overridden_by_dest"])) and not bool(re.search(r"\/gallery\/", post["data"]["url_overridden_by_dest"])):
+                # create regex to check if url corresponds to image or form
+                unwanted_url_regex = "\/(?:gallery|form)\/|(?:jpeg|png|gif)$"
+
+                # check if post contains a url that is not an image or form
+                if not re.search(re.compile(unwanted_url_regex), post["data"]["url_overridden_by_dest"]):
 
                     # append if title of post contains desired keywords
-                    if any([re.search(r"\b" + re.escape(keyword) + r"\b", post["data"]["title"].lower()) for keyword in keywords]):
+                    if any(re.search(r"\b" + re.escape(keyword) + r"\b", post["data"]["title"].lower()) for keyword in keywords):
 
                         info_list.append([
                             self.subreddit,
@@ -97,50 +98,50 @@ subreddits = [Subreddit(name) for name in names]
 keywords = ["phish", "scam", "hack", "fraud", "breach", "attack", "fraudster", "internet scam", "cyber crime"]
 
 stories_of_interest = get_reddit_data(subreddits, keywords)
-print(stories_of_interest)
+print(stories_of_interest.link.to_list())
 
 
 
 
-# create database file
-create_sqlite_database("datascraping_reddit_database.db")
+# # create database file
+# create_sqlite_database("datascraping_reddit_database.db")
 
-# try to connect to database
-try:
+# # try to connect to database
+# try:
 
-    # start connection
-    conn = sqlite3.connect("datascraping_reddit_database.db")
-
-
-except sqlite3.Error as e:
-
-        # if connection fails print error
-        print(e)
+#     # start connection
+#     conn = sqlite3.connect("datascraping_reddit_database.db")
 
 
-# stories_of_interest.to_sql("data", con=conn)
-statement = '''SELECT * FROM data'''
+# except sqlite3.Error as e:
 
-# get cursor
-cur = conn.cursor()
-
-# write table
-# stories_of_interest.to_sql(name="datascraping_reddit_database", con=conn)
-
-# execute statement
-cur.execute(statement)
-
-# print all data
-output = cur.fetchall()
-for row in output:
-    print(row)
-
-# commit statement
-conn.commit()
+#         # if connection fails print error
+#         print(e)
 
 
-# close connection   
-conn.close()
+# # stories_of_interest.to_sql("data", con=conn)
+# statement = '''SELECT * FROM data'''
+
+# # get cursor
+# cur = conn.cursor()
+
+# # write table
+# # stories_of_interest.to_sql(name="datascraping_reddit_database", con=conn)
+
+# # execute statement
+# cur.execute(statement)
+
+# # print all data
+# output = cur.fetchall()
+# for row in output:
+#     print(row)
+
+# # commit statement
+# conn.commit()
+
+
+# # close connection   
+# conn.close()
 
 
 
