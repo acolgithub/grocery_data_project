@@ -5,20 +5,14 @@ import pandas as pd
 
 
 
-# search terms
-search_terms = ["internet scam", "cyber crime", "phishing", "fraudster", "data breach"]
-
-# convert to search words
-search_words = ["+".join(term.split()) for term in search_terms]
-
 # get relevant stories
-def get_apnews_data(search_words: list[str]):
+def get_apnews_data(regex_search_words: list[str]):
 
     # get url
     url = "https://apnews.com/search?q="
 
     # iterate over search words
-    for word in search_words:
+    for word in regex_search_words:
 
         # convert to search words
         search_word = "+".join(word.split())
@@ -42,46 +36,39 @@ def get_apnews_data(search_words: list[str]):
         # get soup object
         soup = BeautifulSoup(url_request.text, "lxml")
 
-        # find div with class "PagePromo"
-        page_promos = soup.find_all("div", {"class": "PagePromo-title"})
+        # filter out stories without data-gtm-region tag
+        page_promos = [tag for tag in soup.select("div.PagePromo") if tag.has_attr("data-gtm-region")]
 
-        # filter out trending stories
-        page_promos = [entry for entry in page_promos if not bool(entry.find("a", {"class", "Link AnClick-TrendingLink"}))]
+        # return list for story headline, description, and link
+        story_info = []
 
-        # filter if it does not have search word in headline or content
-        page_promos = [entry for entry in page_promos if bool(re.search(re.escape(word), entry.text.lower()))]
+        for tag in page_promos:
 
-        # get headlines after removing new line character
-        page_promos_headlines = [entry.text for entry in page_promos]
-        page_promos_link = [entry.find("a", attrs={"href": re.compile("^http")}).get("href") for entry in page_promos]
-        print([entry.get("href") in page_promos_link for entry in soup.find_all("a", {"class": "Link"})])
+            # create temporary storage for headline, description, and link from story
+            tmp_headline = tag.get("data-gtm-region")
+            tmp_description = tag.find_all("span", {"class": "PagePromoContentIcons-text"})[-1].text
+            tmp_link = tag.select("div.PagePromo-title")[0].select("a.Link")[0].get("href")
+            
+            # check if headline or description contains a search word
+            if re.search(word, tmp_headline) or re.search(word, tmp_description):
 
-get_apnews_data(["fraudster"])
+                # store headline, description, and link
+                story_info.append([tmp_headline, tmp_description, tmp_link])
 
-
-
-
-
-
-
-
-def get_soup(url):
-    # create object page
-    url_page = requests.get(url)
-
-    # use lxml parser to convert page
-    url_soup = BeautifulSoup(url_page.text, "lxml")
-
-    return url_soup
+        return story_info
+    
 
 
 
-def cp24_banner():
-    # get cp24 soup
-    cp24_soup = get_soup("https://toronto.citynews.ca/toronto-gta-gas-prices/")
 
-    # find div with class="float-box" and get its text
-    cp_24_text = cp24_soup.find("div", {"class": "float-box"}).text
 
-    # extract banner
-    banner_start_index = cp_24_text.find("En-Pro")
+# search terms
+search_terms = ["internet scam", "cyber crime", "phishing", "fraudster", "data breach"]
+
+# convert to search words
+search_words = ["+".join(term.split()) for term in search_terms]
+
+# regex search words
+regex_search_words = [r"\b" + re.escape(word) + r"\b" for word in search_words]
+
+print(get_apnews_data(["internet scam"]))

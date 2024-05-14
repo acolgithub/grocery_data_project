@@ -16,7 +16,7 @@ class Subreddit():
         self.header = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"}
 
 
-    def get_subreddit_info(self, keywords):
+    def get_subreddit_info(self, keywords, unwanted_url_regex):
 
         # return list of info
         info_list = []
@@ -53,14 +53,11 @@ class Subreddit():
             # check that reddit post is of t3 kind and contains a url
             if post["kind"] == "t3" and "url_overridden_by_dest" in post["data"].keys():
 
-                # create regex to check if url corresponds to image or form
-                unwanted_url_regex = "\/(?:gallery|form)\/|(?:jpeg|png|gif)$"
-
                 # check if post contains a url that is not an image or form
-                if not re.search(re.compile(unwanted_url_regex), post["data"]["url_overridden_by_dest"]):
+                if not re.search(unwanted_url_regex, post["data"]["url_overridden_by_dest"]):
 
                     # append if title of post contains desired keywords
-                    if any(re.search(r"\b" + re.escape(keyword) + r"\b", post["data"]["title"].lower()) for keyword in keywords):
+                    if any(re.search(keyword, post["data"]["title"].lower()) for keyword in keywords):
 
                         info_list.append([
                             self.subreddit,
@@ -81,9 +78,19 @@ def get_reddit_data(subreddits: list[Subreddit], keywords: list[str]) -> pd.Data
     # set up column names
     columns = ["subreddit", "description", "link", "permalink"]
 
+    # create regex escape keywords
+    regex_keywords = [r"\b" + re.escape(keyword) + r"\b" for keyword in keywords]
+
+    # create regex to check if url corresponds to image or form or google search
+    unwanted_url_regex = re.compile("\/(?:gallery|form)\/|(?:jpeg|png|gif)$|(?:google.com)")
+
     for subreddit in subreddits:
 
-        reddit_info_list.extend(subreddit.get_subreddit_info(keywords))
+        # get desired subreddit information
+        subreddit_info = subreddit.get_subreddit_info(regex_keywords, unwanted_url_regex)
+
+        # append to info list
+        reddit_info_list.extend(subreddit_info)
 
     return pd.DataFrame(data=reddit_info_list, columns=columns)
 
@@ -142,6 +149,7 @@ print(stories_of_interest.link.to_list())
 
 # # close connection   
 # conn.close()
+
 
 
 
