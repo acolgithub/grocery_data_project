@@ -5,20 +5,18 @@ import pandas as pd
 
 
 
+
 # get relevant stories
 def get_apnews_data(regex_search_words: list[str]):
 
     # get url
-    url = "https://apnews.com/search?q="
+    url = "https://apnews.com/"
 
     # iterate over search words
     for word in regex_search_words:
 
-        # convert to search words
-        search_word = "+".join(word.split())
-
         # form url with query
-        url_query = url + search_word + "&p=1"
+        url_query = url + "search?q=" + word + "&p=1"
 
         # string to hold request
         url_request = ""
@@ -42,6 +40,9 @@ def get_apnews_data(regex_search_words: list[str]):
         # return list for story headline, description, and link
         story_info = []
 
+        # set up column names
+        columns = ["headline", "description", "link"]
+
         for tag in page_promos:
 
             # create temporary storage for headline, description, and link from story
@@ -52,10 +53,10 @@ def get_apnews_data(regex_search_words: list[str]):
             # check if headline or description contains a search word
             if re.search(word, tmp_headline) or re.search(word, tmp_description):
 
-                # store headline, description, and link
+                # append headline, description, and link
                 story_info.append([tmp_headline, tmp_description, tmp_link])
 
-        return story_info
+        return pd.DataFrame(data=story_info, columns=columns)
     
 
 
@@ -69,6 +70,6 @@ search_terms = ["internet scam", "cyber crime", "phishing", "fraudster", "data b
 search_words = ["+".join(term.split()) for term in search_terms]
 
 # regex search words
-regex_search_words = [r"\b" + re.escape(word) + r"\b" for word in search_words]
+regex_search_words = [ re.escape(word) for word in search_words]
 
-print(get_apnews_data(["internet scam"]))
+print(get_apnews_data(search_terms))

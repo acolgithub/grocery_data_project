@@ -79,10 +79,10 @@ def get_reddit_data(subreddits: list[Subreddit], keywords: list[str]) -> pd.Data
     columns = ["subreddit", "description", "link", "permalink"]
 
     # create regex escape keywords
-    regex_keywords = [r"\b" + re.escape(keyword) + r"\b" for keyword in keywords]
+    regex_keywords = [re.escape(keyword) for keyword in keywords]
 
-    # create regex to check if url corresponds to image or form or google search
-    unwanted_url_regex = re.compile("\/(?:gallery|form)\/|(?:jpeg|png|gif)$|(?:google.com)")
+    # create regex to check if url corresponds to image, video, form, or google search
+    unwanted_url_regex = re.compile("\/(?:gallery|form)\/|(?:v.redd.it)|(?:jpeg|png|gif)$|(?:google.com)")
 
     for subreddit in subreddits:
 
