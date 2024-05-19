@@ -39,29 +39,29 @@ class Loblaws():
         # go to url
         driver.get(url_query)
 
-        # # wait until privacy element is visible
-        # WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="product-grid__results__footer "]')))
-
-        # # scroll to bottom of page
-        # driver.execute_script("window.scrollTo(0,1080*6);")
-
-        # # close privacy policy
-        # WebDriverWait(driver, 20).until(
-        #     EC.element_to_be_clickable((By.XPATH, "//button[@class='lds__privacy-policy__btnClose']"))
-        # ).click()
-
-        # # click load more button
-        # WebDriverWait(driver, 20).until(
-        #     EC.element_to_be_clickable((By.XPATH, "//button[@class='primary-button primary-button--load-more-button']"))
-        # ).click()
-
-        # # wait until privacy element is visible
-        # WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="product-grid__results__footer "]')))
-
-        # # scroll to bottom of page
-        # driver.execute_script("window.scrollTo(0,1080*12);")
-
         try:
+
+            # wait until privacy element is visible
+            WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="product-grid__results__footer "]')))
+
+            # scroll to bottom of page
+            driver.execute_script("window.scrollTo(0,1080*6);")
+
+            # # close privacy policy
+            # WebDriverWait(driver, 20).until(
+            #     EC.element_to_be_clickable((By.XPATH, "//button[@class='lds__privacy-policy__btnClose']"))
+            # ).click()
+
+            # # click load more button
+            # WebDriverWait(driver, 20).until(
+            #     EC.element_to_be_clickable((By.XPATH, "//button[@class='primary-button primary-button--load-more-button']"))
+            # ).click()
+
+            # # wait until privacy element is visible
+            # WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="product-grid__results__footer "]')))
+
+            # # scroll to bottom of page
+            # driver.execute_script("window.scrollTo(0,1080*12);")
 
             element = WebDriverWait(driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//div[@class='product-grid__results__products']"))
@@ -128,13 +128,5 @@ loblaws = Loblaws()
 t0 = time.time()
 print(loblaws.get_loblaws_deal_data("milk"))
 print(time.time() - t0)
-
-
-# url = loblaws.url + "/search?search-bar=" + "milk"
-# # get driver
-# driver = webdriver.Firefox()
-
-# # go to url
-# driver.get(url)
 
 
