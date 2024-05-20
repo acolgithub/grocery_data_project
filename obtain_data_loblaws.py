@@ -167,11 +167,13 @@ class Loblaws():
             price_regex = r"(\.\d{2})(.*)"
             search_item_price = [re.sub(price_regex, r'\1 \2', price.text) for price in search_item_price]
 
+            # make columns   
+            columns = ["brand", "name", "price"]
 
-            print(search_item_brand)
-            print(search_item_eyebrow)
-            print(search_item_name)
-            print(search_item_price)
+            # make dataframe
+            df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
+
+            return df.sort_values(by=["brand", "price"], ignore_index=True)
 
 
 
@@ -185,7 +187,7 @@ loblaws = Loblaws()
 # print(time.time() - t0)
 
 t0 = time.time()
-loblaws.get_loblaws_data2("milk")
+print(loblaws.get_loblaws_data2("milk"))
 print(time.time() - t0)
 
 
