@@ -61,9 +61,6 @@ class Metro():
 
         finally:
 
-            # # determine which items are sponspored
-            # search_item_eyebrow = element.find_elements(By.XPATH, "//*[@class='product-tile__eyebrow']")
-
             # get brand, name, price, and unit of grocery item
             search_item_description = element.find_elements(By.XPATH, "//*[@class='head__title']")
             search_item_unit = element.find_elements(By.XPATH, "//*[@class='head__unit-details']")

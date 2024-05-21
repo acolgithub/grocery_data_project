@@ -1,4 +1,6 @@
 import requests
+from lxml import html
+
 import re
 import pandas as pd
 from selenium import webdriver
@@ -144,17 +146,23 @@ class Loblaws():
             print(e)
 
             # close session
-            session.close()
+            r.close()
 
         finally:
 
+            # get html
+            h = r.html
+
+            # close session
+            r.close()
+
             # determine which items are sponspored
-            search_item_eyebrow = r.html.xpath("//*[@class='product-tile__eyebrow']")
+            search_item_eyebrow = h.xpath("//*[@class='product-tile__eyebrow']")
 
             # get brand, name, price, and unit of grocery item
-            search_item_brand = r.html.xpath("//*[@class='product-name__item product-name__item--brand']")
-            search_item_name = r.html.xpath("//*[@class='product-name__item product-name__item--name']")
-            search_item_price = r.html.xpath("//*[@class='price selling-price-list__item__price selling-price-list__item__price--now-price'] | //*[@class='price selling-price-list__item__price selling-price-list__item__price--sale']")
+            search_item_brand = h.xpath("//*[@class='product-name__item product-name__item--brand']")
+            search_item_name = h.xpath("//*[@class='product-name__item product-name__item--name']")
+            search_item_price = h.xpath("//*[@class='price selling-price-list__item__price selling-price-list__item__price--now-price'] | //*[@class='price selling-price-list__item__price selling-price-list__item__price--sale']")
 
             # # get sponsor text but ignore 'new' and ignore repeat entries
             search_item_eyebrow = list(OrderedDict.fromkeys([(brow.attrs["data-testid"], re.sub(re.escape("New"), "", brow.text)) for brow in search_item_eyebrow]))
@@ -177,9 +185,76 @@ class Loblaws():
             df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
 
             # close session
-            session.close()
+            r.close()
 
             return df.sort_values(by=["brand", "price"], ignore_index=True)
+        
+
+    
+    def get_loblaws_data3(self, grocery_item: str):
+
+        # form url with query
+        url_query = self.url + "/search?search-bar=" + grocery_item
+
+        # store request
+        r = ""
+
+        # try to make request
+        try:
+
+            r = requests.get(url=url_query, headers=self.header)
+
+        except UnboundLocalError as e:
+            print(e)
+
+            # close session
+            r.close()
+
+        finally:
+
+            time.sleep(20)
+
+            # get html
+            h = html.fromstring(r.content)
+
+            # close request
+            r.close()
+
+            # determine which items are sponspored
+            search_item_eyebrow = h.xpath("//*[@class='product-tile__eyebrow']")
+
+            # get brand, name, price, and unit of grocery item
+            search_item_brand = h.xpath("//*[@class='product-name__item product-name__item--brand']")
+            search_item_name = h.xpath("//*[@class='product-name__item product-name__item--name']")
+            search_item_price = h.xpath("//*[@class='price selling-price-list__item__price selling-price-list__item__price--now-price'] | //*[@class='price selling-price-list__item__price selling-price-list__item__price--sale']")
+
+            # # get sponsor text but ignore 'new' and ignore repeat entries
+            search_item_eyebrow = list(OrderedDict.fromkeys([(brow.attrs["data-testid"], re.sub(re.escape("New"), "", brow.text)) for brow in search_item_eyebrow]))
+            search_item_eyebrow = [tup[1] for tup in search_item_eyebrow]
+
+            # get brand text
+            search_item_brand = [brand.text for brand in search_item_brand]
+
+            # get item text
+            search_item_name = [name.text for name in search_item_name]
+
+            # format price
+            price_regex = r"(\.\d{2})(.*)"
+            search_item_price = [re.sub(price_regex, r'\1 \2', price.text) for price in search_item_price]
+
+            # make columns   
+            columns = ["brand", "name", "price"]
+
+            # make dataframe
+            df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
+
+            return df.sort_values(by=["brand", "price"], ignore_index=True)
+
+
+
+
+
+
 
 
 
