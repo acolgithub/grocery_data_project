@@ -10,15 +10,15 @@ from lxml import html
 
 
 
-class Loblaws():
+class Nofrills():
         
     def __init__(self):
 
-        self.url = "https://www.loblaws.ca"
+        self.url = "https://www.nofrills.ca"
         self.header = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"}
 
 
-    def get_loblaws_data(self, grocery_item: str):
+    def get_nofrills_data(self, grocery_item: str):
 
 
         # form url with query
@@ -84,10 +84,10 @@ class Loblaws():
         
 
 
-loblaws = Loblaws()
+nofrills = Nofrills()
 
 t0 = time.time()
-print(loblaws.get_loblaws_data("milk"))
+print(nofrills.get_nofrills_data("milk"))
 print(time.time() - t0)
 
 
