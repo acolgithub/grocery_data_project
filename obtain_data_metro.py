@@ -1,7 +1,6 @@
-from bs4 import BeautifulSoup
-import requests
 import re
 import pandas as pd
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -17,22 +16,19 @@ class Metro():
         
     def __init__(self):
 
-        self.url = "https://www.metro.ca/en"
+        self.url = "https://www.metro.ca/en/online-grocery/search?filter="
         self.header = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"}
         self.options = FirefoxOptions()
 
         # run headless
         self.options.add_argument("--headless")
 
-        # adjust window size
-        # self.options.add_argument("window-size=1920,1080")
-
 
     # get relevant stories
     def get_metro_deal_data(self, grocery_item: str):
 
         # form url with query
-        url_query = self.url + "/online-grocery/search?filter=" + grocery_item
+        url_query = self.url + grocery_item
 
         # get driver
         driver = webdriver.Firefox(options=self.options)

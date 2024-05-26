@@ -14,13 +14,13 @@ class Longos():
         
     def __init__(self):
 
-        self.url = "https://voila.ca/products"
+        self.url = "https://voila.ca/products/search?q="
         self.header = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"}
 
     def get_longos_deal_data(self, grocery_item: str):
 
         # form url with query
-        url_query = self.url + "/search?q=" + grocery_item
+        url_query = self.url + grocery_item
 
         # store request
         r = ""

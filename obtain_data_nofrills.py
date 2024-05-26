@@ -14,7 +14,7 @@ class Nofrills():
         
     def __init__(self):
 
-        self.url = "https://www.nofrills.ca"
+        self.url = "https://www.nofrills.ca/search?search-bar="
         self.header = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"}
 
 
@@ -22,7 +22,7 @@ class Nofrills():
 
 
         # form url with query
-        url_query = self.url + "/search?search-bar=" + grocery_item
+        url_query = self.url + grocery_item
 
         # get session object
         session = HTMLSession()
@@ -55,7 +55,7 @@ class Nofrills():
             # get brand, name, price, and unit of grocery item
             search_item_brand = h.xpath("//span[contains(@class, 'product-name__item--brand')]")
             search_item_name = h.xpath("//span[contains(@class,'product-name__item--name')]")
-            search_item_price = h.xpath("//span[contains(@class,'selling-price-list__item__price')]")
+            search_item_price = h.xpath("//*[@class='price selling-price-list__item__price selling-price-list__item__price--now-price'] | //*[@class='price selling-price-list__item__price selling-price-list__item__price--sale']")
 
             # # get sponsor text but ignore 'new' and ignore repeat entries
             search_item_eyebrow = list(OrderedDict.fromkeys([(brow.attrs["data-testid"], re.sub(re.escape("New"), "", brow.text)) for brow in search_item_eyebrow]))
@@ -76,9 +76,6 @@ class Nofrills():
 
             # make dataframe
             df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
-
-            # close session
-            r.close()
 
             return df.sort_values(by=["brand", "price"], ignore_index=True)
         
