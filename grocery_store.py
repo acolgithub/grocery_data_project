@@ -63,11 +63,13 @@ class GroceryStore():
 
             r = requests.get(url=url_query, headers=self.header)
 
-        except UnboundLocalError as e:
-            print(e)
+        except requests.exceptions.RequestException as e:
 
-            # close session
+            # close connection
             r.close()
+
+            # terminate program
+            raise SystemExit(e)
 
         finally:
 

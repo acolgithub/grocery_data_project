@@ -1,6 +1,7 @@
-from multiprocessing import Process
 import re
 import pandas as pd
+from itertools import repeat
+from multiprocessing import Process, Pool
 
 import time
 from collections import OrderedDict
@@ -23,7 +24,7 @@ def scrape(grocery_store: str, grocery_item: str):
     store = GroceryStore(grocery_store)
     
     # get content
-    content = store.get_scraper( "milk")
+    content = store.get_scraper("milk")
 
     # print content
     print(content)
@@ -32,12 +33,19 @@ def scrape(grocery_store: str, grocery_item: str):
 if __name__ == "__main__":
 
     t0 = time.time()
-    p1 = Process(target=scrape, args=("FoodBasics", "milk"))
-    p1.start()
-    p2 = Process(target=scrape, args=("Loblaws", "milk"))
-    p2.start()
-    p1.join()
-    p2.join()
+
+    grocery_item = "milk"
+
+    jobs = [
+        "FoodBasics", "Independent", "Loblaws", "Longos", "Metro", "NoFrills", "Valumart"
+    ]
+
+    with Pool(processes=len(jobs)) as pool:
+        
+        # get result of scraping
+        pool.starmap(scrape, zip(jobs, repeat(grocery_item)))
+
+
     print(time.time() - t0)
 
 
