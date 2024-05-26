@@ -77,9 +77,6 @@ class Loblaws():
             # make dataframe
             df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
 
-            # close session
-            r.close()
-
             return df.sort_values(by=["brand", "price"], ignore_index=True)
         
 

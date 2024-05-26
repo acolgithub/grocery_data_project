@@ -62,9 +62,13 @@ class FoodBasics():
         finally:
 
             # get brand, name, price, and unit of grocery item
+            search_item_brand = element.find_elements(By.XPATH, "//span[@class='head__brand']")
             search_item_description = element.find_elements(By.XPATH, "//*[@class='head__title']")
             search_item_unit = element.find_elements(By.XPATH, "//*[@class='head__unit-details']")
             search_item_price = element.find_elements(By.XPATH, "//*[@class='pricing__sale-price promo-price'] | //*[@class='pricing__sale-price']")
+
+            # get brand name
+            search_item_brand = [brand.text for brand in search_item_brand]
 
             # get brand text
             search_item_description = [description.text for description in search_item_description]
@@ -77,15 +81,13 @@ class FoodBasics():
 
             driver.quit()
 
-        # make columns   
-        columns = ["description", "unit", "price"]
+            # make columns   
+            columns = ["brand", "description", "unit", "price"]
 
-        driver.quit()
+            # make dataframe
+            df = pd.DataFrame(data=[list(row) for row in zip(search_item_brand, search_item_description, search_item_unit, search_item_price)], columns=columns)
 
-        # make dataframe
-        df = pd.DataFrame(data=[list(row) for row in zip(search_item_description, search_item_unit, search_item_price)], columns=columns)
-
-        return df
+            return df
 
 
 food_basics = FoodBasics()

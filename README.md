@@ -1,2 +1,3 @@
-# cyber_info_datascraper
-In this project I will scrape information about recent cyber crimes in order to read about it. This is intended to help communities vulnerable to cyber attacks stay informed.
+# grocery store scrapers
+
+In this project I will scrape information from a number of local grocery stores in order to compare prices.
