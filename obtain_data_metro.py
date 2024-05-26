@@ -85,9 +85,3 @@ class Metro():
 
             return df
 
-
-metro = Metro()
-
-t0 = time.time()
-print(metro.get_metro_deal_data("milk"))
-print(time.time() - t0)

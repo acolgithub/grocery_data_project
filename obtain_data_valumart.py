@@ -76,15 +76,6 @@ class Valumart():
             df = pd.DataFrame(data=[list(row) for index, row in enumerate(zip(search_item_brand, search_item_name, search_item_price)) if search_item_eyebrow[index] != "Sponsored"], columns=columns)
 
             return df.sort_values(by=["brand", "price"], ignore_index=True)
-        
-
-
-valumart = Valumart()
-
-t0 = time.time()
-print(valumart.get_valumart_data("milk"))
-print(time.time() - t0)
-
 
 
 

@@ -62,12 +62,3 @@ class Longos():
 
             return df
 
-            
-
-
-
-longos = Longos()
-
-t0 = time.time()
-print(longos.get_longos_deal_data("milk"))
-print(time.time() - t0)

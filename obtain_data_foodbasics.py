@@ -84,10 +84,3 @@ class FoodBasics():
             df = pd.DataFrame(data=[list(row) for row in zip(search_item_brand, search_item_description, search_item_unit, search_item_price)], columns=columns)
 
             return df
-
-
-food_basics = FoodBasics()
-
-t0 = time.time()
-print(food_basics.get_food_basics_deal_data("milk"))
-print(time.time() - t0)

@@ -79,13 +79,3 @@ class Loblaws():
             return df.sort_values(by=["brand", "price"], ignore_index=True)
         
 
-
-loblaws = Loblaws()
-
-t0 = time.time()
-print(loblaws.get_loblaws_data("milk"))
-print(time.time() - t0)
-
-
-
-

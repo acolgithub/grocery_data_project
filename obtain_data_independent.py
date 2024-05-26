@@ -79,14 +79,3 @@ class Independent():
 
             return df.sort_values(by=["brand", "price"], ignore_index=True)
         
-
-
-independent = Independent()
-
-t0 = time.time()
-print(independent.get_independent_data("milk"))
-print(time.time() - t0)
-
-
-
-

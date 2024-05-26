@@ -10,7 +10,7 @@ from lxml import html
 
 
 
-class Nofrills():
+class NoFrills():
         
     def __init__(self):
 
@@ -79,14 +79,5 @@ class Nofrills():
 
             return df.sort_values(by=["brand", "price"], ignore_index=True)
         
-
-
-nofrills = Nofrills()
-
-t0 = time.time()
-print(nofrills.get_nofrills_data("milk"))
-print(time.time() - t0)
-
-
 
 
