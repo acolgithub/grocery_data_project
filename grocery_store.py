@@ -19,7 +19,7 @@ class GroceryStore():
     def __init__(self, store_name: str):
 
         # dictionary of grocery stores
-        stores = {
+        store_url_dictionary = {
             "FoodBasics": "https://www.foodbasics.ca/search?filter=",
             "Independent": "https://www.independentcitymarket.ca/search?search-bar=",
             "Loblaws": "https://www.loblaws.ca/search?search-bar=",
@@ -29,7 +29,9 @@ class GroceryStore():
             "Valumart": "https://www.valumart.ca/search?search-bar="
         }
 
-        self.url = stores[store_name]
+        # attributes
+        self.store = store_name
+        self.url = store_url_dictionary[store_name]
         self.header = {
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "Accept-Language": "en-CA,en-US;q=0.7,en;q=0.3",
@@ -217,6 +219,21 @@ class GroceryStore():
             df = pd.DataFrame(data=[list(row) for row in zip(search_item_brand, search_item_description, search_item_unit, search_item_price)], columns=columns)
 
             return df
+        
+
+    def get_scraper(self, grocery_item: str):
+
+        if self.store == "Longos":
+
+            return self.requests_scraper(grocery_item)
+        
+        elif self.store in ["Independent", "Loblaws", "No Frills", "Valumart"]:
+
+            return self.html_session_scraper(grocery_item)
+        
+        else:
+
+            return self.selenium_scraper(grocery_item)
 
 
 
