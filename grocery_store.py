@@ -14,6 +14,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
+
 class GroceryStore():
 
     def __init__(self, store_name: str):
@@ -114,7 +115,7 @@ class GroceryStore():
             r = session.get(url_query)
 
             # render html and wait for html elements to appear
-            r.html.render(sleep=3)
+            r.html.render(sleep=5)
 
         except UnboundLocalError as e:
             print(e)
@@ -176,7 +177,7 @@ class GroceryStore():
         try:
 
             # wait until privacy element is visible
-            WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//div[@class="banner-actions-container"]')))
+            WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//button[@id="onetrust-reject-all-handler"]')))
 
             # click not to accept cookies
             privacy_button = driver.find_element(By.ID, "onetrust-reject-all-handler")
@@ -229,13 +230,11 @@ class GroceryStore():
 
             return self.requests_scraper(grocery_item)
         
-        elif self.store in ["Independent", "Loblaws", "No Frills", "Valumart"]:
+        elif self.store in ["Independent", "Loblaws", "NoFrills", "Valumart"]:
 
             return self.html_session_scraper(grocery_item)
         
         else:
 
             return self.selenium_scraper(grocery_item)
-
-
 
