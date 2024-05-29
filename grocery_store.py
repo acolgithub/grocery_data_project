@@ -234,7 +234,12 @@ class GroceryStore():
 
             return self.html_session_scraper(grocery_item)
         
-        else:
+        elif self.store in ["FoodBasics", "Metro"]:
 
             return self.selenium_scraper(grocery_item)
+        
+        else:
+
+            print("Error, no matching store.")
+            return pd.Dataframe()
 
