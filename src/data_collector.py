@@ -4,16 +4,12 @@ import asyncio
 import pandas as pd
 from collections import OrderedDict
 
-import requests
-
-from requests_html import HTMLSession
+import lxml
 from lxml import html
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import aiohttp
+from requests_html import AsyncHTMLSession
+from playwright.async_api import async_playwright
 
 from grocery_store import GroceryStore
 
@@ -68,6 +64,3 @@ if __name__ == "__main__":
 
     # run main function to acquire data
     loop.run_until_complete(main())
-
-
-

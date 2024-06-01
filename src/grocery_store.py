@@ -4,16 +4,12 @@ import asyncio
 import pandas as pd
 from collections import OrderedDict
 
-import requests
-
-from requests_html import AsyncHTMLSession
+import lxml
 from lxml import html
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import aiohttp
+from requests_html import AsyncHTMLSession
+from playwright.async_api import async_playwright
 
 
 class GroceryStore():
@@ -43,20 +39,9 @@ class GroceryStore():
         self.store = store_name
         self.url = store_url_dictionary[store_name]
         self.header = {
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Accept-Language": "en-CA,en-US;q=0.7,en;q=0.3",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
         }
-        self.options = FirefoxOptions()
-
-        # browser options for selenium scrapers
-        if store_name in ["FoodBasics", "Metro"]:
-
-            # run browser headless
-            self.options.add_argument("--headless")
-
-            # set browser window size
-            self.options.add_argument("--window-size=1920,1080")
+        self.options = ["--window-size=1920,1080"]
 
     
     # function to save data obtained
@@ -82,9 +67,9 @@ class GroceryStore():
 
 
     # scraper used for Longos
-    def requests_scraper(self, grocery_item: str) -> None:
+    async def aiohttp_scraper(self, grocery_item: str) -> None:
         """
-        Function that scrapes data using the requests module.
+        Function that scrapes data using the aiohttp module.
 
         Keyword arguments:
         grocery_item -- desired item to get data on
@@ -93,57 +78,45 @@ class GroceryStore():
         # form url with query
         url_query = self.url + grocery_item
 
-        # store request
-        r = ""
+        # create http session
+        async with aiohttp.ClientSession() as session:
 
-        # try to make request
-        try:
+            # make get request using session
+            async with session.get(url_query) as response:
 
-            r = requests.get(url=url_query, headers=self.header)
+                # get text content
+                response_text = await response.text()
 
-        except requests.exceptions.RequestException as e:
+                # get element tree
+                tree = lxml.html.fromstring(response_text)
 
-            # close connection
-            r.close()
+                # get description and price of grocery item
+                search_item_description = tree.xpath("//*[@data-test='fop-title']")
+                search_item_price = tree.xpath("//*[@data-test='fop-price-per-unit']")
 
-            # terminate program
-            raise SystemExit(e)
+                # get text of descriptions
+                search_item_description = [item.text for item in search_item_description]
 
-        finally:
+                # get price using text_content due to new line characters
+                search_item_price = [re.sub(r"[()]", "", price.text_content()) for price in search_item_price]
+                
+                # make dataframe columns
+                columns = ["description", "price"]
 
-            # get html
-            h = html.fromstring(r.content)
+                # zip together information
+                search_item_info = zip(search_item_description, search_item_price)
 
-            # close request
-            r.close()
+                # make dataframe
+                df = pd.DataFrame(
+                        data=[list(row) for row in search_item_info],
+                        columns=columns
+                    )
 
-            # get description and price of grocery item
-            search_item_description = h.xpath("//*[@data-test='fop-title']")
-            search_item_price = h.xpath("//*[@data-test='fop-price-per-unit']")
+                # sort dataframe by brand contained in description
+                df = df.sort_values(by=["description"], ignore_index=True)
 
-            # get text of descriptions
-            search_item_description = [item.text for item in search_item_description]
-
-            # get price using text_content due to new line characters
-            search_item_price = [re.sub(r"[()]", "", price.text_content()) for price in search_item_price]
-            
-            # make dataframe columns
-            columns = ["description", "price"]
-
-            # zip together information
-            search_item_info = zip(search_item_description, search_item_price)
-
-            # make dataframe
-            df = pd.DataFrame(
-                    data=[list(row) for row in search_item_info],
-                    columns=columns
-                )
-
-            # sort dataframe by brand contained in description
-            df = df.sort_values(by=["description"], ignore_index=True)
-
-            # save dataframe as html table
-            self.save_data(df)
+                # save dataframe as html table
+                self.save_data(df)
         
 
     # scraper used for Independent, Loblaws, No Frills, Valumart
@@ -230,10 +203,10 @@ class GroceryStore():
             self.save_data(df)
             
 
-    # scraper used for Food Basics, Metro
-    def selenium_scraper(self, grocery_item: str) -> None:
+   # scraper used for Food Basics, Metro
+    async def playwright_scraper(self, grocery_item: str) -> None:
         """
-        Function that scrapes data using the selenium module.
+        Function that scrapes data using the playwright module.
         This scraper is used for websites which require
         an interactive component.
         
@@ -244,41 +217,37 @@ class GroceryStore():
         # form url with query
         url_query = self.url + grocery_item
 
-        # get driver
-        driver = webdriver.Firefox(options=self.options)
+        async with async_playwright() as p:
 
-        # go to url
-        driver.get(url_query)
+            # get headless firefox browser
+            browser = await p.firefox.launch(headless=True, args=self.options)
 
-        try:
+            # add header
+            context = await browser.new_context(user_agent=self.header["user-agent"])
 
-            # wait until privacy element is visible
-            WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//button[@id="onetrust-reject-all-handler"]')))
+            # get new page
+            page = await context.new_page()
 
-            # click not to accept cookies
-            privacy_button = driver.find_element(By.ID, "onetrust-reject-all-handler")
-            privacy_button.click()
+            # search query
+            await page.goto(url_query)
 
-            # wait until desired elements load
-            element = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//div[@class='content__head']"))
-            )
+            # locate privacy button and click
+            await page.locator('xpath=//button[@id="onetrust-reject-all-handler"]').click()
 
+            # get page content
+            page_content = await page.content()
 
-        except UnboundLocalError as e:
-            print(e)
-            driver.quit()
-
-        finally:
+            # convert page content to html
+            tree = lxml.html.fromstring(page_content)
 
             # get brand, description, price, and unit of grocery item
-            search_item_brand = element.find_elements(By.XPATH, "//span[@class='head__brand']")
-            search_item_description = element.find_elements(By.XPATH, "//*[@class='head__title']")
-            search_item_unit = element.find_elements(By.XPATH, "//*[@class='head__unit-details']")
-            search_item_price = element.find_elements(By.XPATH, "//*[@class='pricing__sale-price promo-price'] | //*[@class='pricing__sale-price']")
+            search_item_brand = tree.xpath("//span[@class='head__brand']")
+            search_item_description = tree.xpath("//*[@class='head__title']")
+            search_item_unit = tree.xpath("//*[@class='head__unit-details']")
+            search_item_price = tree.xpath("//span[@class='price-update pi-price-promo'] | //span[@class='price-update']")
 
-            # get brand name
-            search_item_brand = [brand.text for brand in search_item_brand]
+            # get formatted brand name
+            search_item_brand = [re.sub(r"\n", "", brand.text) for brand in search_item_brand]
 
             # get description text
             search_item_description = [description.text for description in search_item_description]
@@ -287,9 +256,7 @@ class GroceryStore():
             search_item_unit = [unit.text for unit in search_item_unit]
 
             # format price
-            search_item_price = [re.sub(r"\n", "", price.text) for price in search_item_price]
-
-            driver.quit()
+            search_item_price = [price.text for price in search_item_price]
 
             # make columns   
             columns = ["brand", "description", "unit", "price"]
@@ -323,7 +290,7 @@ class GroceryStore():
         # use requests_scraper for Longos
         if self.store == "Longos":
 
-            self.requests_scraper(grocery_item)
+            await self.aiohttp_scraper(grocery_item)
 
         # use html_session_scraper for Independent, Loblaws, No Frills, and Valumart
         elif self.store in ["Independent", "Loblaws", "NoFrills", "Valumart"]:
@@ -333,7 +300,7 @@ class GroceryStore():
         # use selenium_scraper for Food Basics and Metro
         elif self.store in ["FoodBasics", "Metro"]:
 
-            self.selenium_scraper(grocery_item)
+            await self.playwright_scraper(grocery_item)
         
         # all other inputs result in error
         else:
