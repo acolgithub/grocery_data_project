@@ -69,7 +69,7 @@ class GroceryStore():
     # scraper used for Longos
     async def aiohttp_scraper(self, grocery_item: str) -> None:
         """
-        Function that scrapes data using the aiohttp module.
+        Function that scrapes data using aiohttp and lxml.
 
         Keyword arguments:
         grocery_item -- desired item to get data on
@@ -122,7 +122,7 @@ class GroceryStore():
     # scraper used for Independent, Loblaws, No Frills, Valumart
     async def html_session_scraper(self, grocery_item: str) -> None:
         """
-        Function using the requests-html module in order to obtain
+        Function using the requests-html and lxml in order to obtain
         data. This scraper is used for websites which require
         rendering JavaScript.
 
@@ -206,7 +206,7 @@ class GroceryStore():
    # scraper used for Food Basics, Metro
     async def playwright_scraper(self, grocery_item: str) -> None:
         """
-        Function that scrapes data using the playwright module.
+        Function that scrapes data using playwright and lxml.
         This scraper is used for websites which require
         an interactive component.
         
@@ -222,7 +222,7 @@ class GroceryStore():
             # get headless firefox browser
             browser = await p.firefox.launch(headless=True, args=self.options)
 
-            # add header
+            # add user agent
             context = await browser.new_context(user_agent=self.header["user-agent"])
 
             # get new page
@@ -244,7 +244,7 @@ class GroceryStore():
             search_item_brand = tree.xpath("//span[@class='head__brand']")
             search_item_description = tree.xpath("//*[@class='head__title']")
             search_item_unit = tree.xpath("//*[@class='head__unit-details']")
-            search_item_price = tree.xpath("//span[@class='price-update pi-price-promo'] | //span[@class='price-update']")
+            search_item_price = tree.xpath("//div[@data-main-price]")
 
             # get formatted brand name
             search_item_brand = [re.sub(r"\n", "", brand.text) for brand in search_item_brand]
@@ -255,8 +255,8 @@ class GroceryStore():
             # get item unit
             search_item_unit = [unit.text for unit in search_item_unit]
 
-            # format price
-            search_item_price = [price.text for price in search_item_price]
+            # extract price
+            search_item_price = [price.get("data-main-price") for price in search_item_price]
 
             # make columns   
             columns = ["brand", "description", "unit", "price"]
@@ -287,7 +287,7 @@ class GroceryStore():
         grocery_item -- desired item to get data on
         """
 
-        # use requests_scraper for Longos
+        # use aiohttp_scraper for Longos
         if self.store == "Longos":
 
             await self.aiohttp_scraper(grocery_item)
@@ -297,7 +297,7 @@ class GroceryStore():
 
             await self.html_session_scraper(grocery_item)
 
-        # use selenium_scraper for Food Basics and Metro
+        # use playwright_scraper for Food Basics and Metro
         elif self.store in ["FoodBasics", "Metro"]:
 
             await self.playwright_scraper(grocery_item)
